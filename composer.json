@@ -1,0 +1,31 @@
+{
+    "name": "stepanov/manchkin",
+    "authors": [
+        {
+            "name": "StepanovM",
+            "email": "stepanovm77@yandex.ru"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "symfony/dotenv": "^5.1",
+        "psr/http-message": "^1.0",
+        "ext-pdo": "*",
+        "laminas/laminas-diactoros": "^2.4",
+        "psr/container": "^1.0",
+        "cboden/ratchet": "^0.4.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lynxx\\": "Lynxx",
+            "app\\": "app",
+            "tests\\": "tests"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.4"
+    },
+    "scripts": {
+        "test": "php vendor/phpunit/phpunit/phpunit tests --colors=always"
+    }
+}
