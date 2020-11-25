@@ -9,6 +9,8 @@
 use Lynxx\Container\Container;
 use Lynxx\Lynxx;
 
+date_default_timezone_set('Europe/Moscow');
+
 require __DIR__ . '/../vendor/autoload.php';
 $container = new Container();
 

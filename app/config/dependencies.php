@@ -1,6 +1,7 @@
 <?php
 
 use Laminas\Diactoros\ServerRequestFactory;
+use Lynxx\DB;
 use Lynxx\Router\Router;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\RequestInterface;
@@ -27,5 +28,9 @@ return [
 
     ContainerInterface::class => function (ContainerInterface $container) {
         return $container;
+    },
+
+    PDO::class => function (ContainerInterface $container) {
+        return DB::instance();
     },
 ];

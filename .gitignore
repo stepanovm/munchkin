@@ -1,2 +1,5 @@
 /vendor/
 /.env
+/log/
+/web/favicon.ico
+/web/.htaccess

@@ -12,11 +12,16 @@ use Symfony\Component\Dotenv\Dotenv;
 
 class Lynxx
 {
-    private $container;
+    private static $container;
 
     public function __construct(Container $container)
     {
-        $this->container = $container;
+        self::$container = $container;
+    }
+
+    public static function getContainer()
+    {
+        return self::$container;
     }
 
     public function run()
@@ -24,7 +29,7 @@ class Lynxx
         $this->initSystemParams();
 
         /** @var Router $router */
-        $router = $this->container->get(Router::class);
+        $router = self::$container->get(Router::class);
 
         $controllerClass = $router->getControllerClass();
         $actionName = $router->getActionName();
@@ -34,10 +39,10 @@ class Lynxx
         foreach ($queryAttributes as $attribute => $value) {
             $request = $request->withAttribute($attribute, $value);
         }
-        $this->container->set(RequestInterface::class, $request);
+        self::$container->set(RequestInterface::class, $request);
 
 
-        $controller = $this->container->get($controllerClass);
+        $controller = self::$container->get($controllerClass);
         if (!$controller instanceof AbstractController) {
             throw new RouteNotFoundException('bad controller class');
         }
@@ -45,6 +50,11 @@ class Lynxx
         $response = $controller->$actionName();
 
         if ($response instanceof ResponseInterface) {
+            foreach ($response->getHeaders() as $k => $values) {
+                foreach ($values as $v) {
+                    header(sprintf('%s: %s', $k, $v), false);
+                }
+            }
             echo $response->getBody();
         }
 
