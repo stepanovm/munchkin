@@ -88,9 +88,8 @@ class View
     /**
      * register js tag.
      * @param string $js path to js file
-     * @param array $params (params for js tag, like 'async'. Exam: array('async', 'head'))
      */
-    public function registerJs($js, $params = array())
+    public function registerJs($js)
     {
         /** if file not exist, write log and return */
         if (!file_exists(__DIR__ . '/../../web' . $js)) {
@@ -118,7 +117,7 @@ class View
     }
 
 
-    public function render($view_file, $data = [])
+    public function render($view_file, $data = []): ResponseInterface
     {
         extract($data);
 

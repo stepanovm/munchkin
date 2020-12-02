@@ -6,7 +6,7 @@ namespace app\Controller;
 
 use Lynxx\AbstractController;
 use Lynxx\View;
-use Psr\Container\ContainerInterface;
+use PhpCompressor\PhpCompressor;
 
 class HomeController extends AbstractController
 {
@@ -20,7 +20,7 @@ class HomeController extends AbstractController
     public function home()
     {
         return $this->view->render('home.php', [
-            'name' => 'Lynxx'
+            'name' => 'composer require bvanhoekelen/php-compressor'
         ]);
     }
 }
