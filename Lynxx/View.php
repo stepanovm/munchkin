@@ -39,7 +39,8 @@ class View
     }
 
     /**
-     * @param string $layout absolute path to layout file
+     * @param string $layout path to layout file
+     * <br /><br />Note: layout file must be placed here <b>/app/templates/layout/</b>
      */
     public function setLayout(string $layout): void
     {
@@ -152,10 +153,12 @@ class View
      * @param string $component_file path to component file
      * @param array $data some data, can be used at component as $data['key']
      */
-    public function registerComponent($name, $component_file, $data = array())
+    public function registerComponent(string $name, string $component_file, array $data = [])
     {
+        extract($data);
+
         ob_start();
-        $component_file = __DIR__ . '/../../' . $component_file;
+        $component_file = __DIR__ . '/../app/templates/' . $component_file;
 
         if (!file_exists($component_file)) {
             echo 'Не удалось загрузить компонент ' . $name;

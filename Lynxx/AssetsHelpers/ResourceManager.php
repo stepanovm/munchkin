@@ -6,37 +6,6 @@ namespace Lynxx\AssetsHelpers;
 
 abstract class ResourceManager {
 
-    protected $mWebResources;
-    protected $resource_file_paths;
-    protected $resource_type;
-    protected $compressed_filename;
-    protected $compressed_version = 0;
-    protected $allResourcesLastModified = 0;
-
-    protected $rewrite_file_flag = true;
-
-
-    protected $home_dir;
-    protected $min_target_dir;
-
-
-    /**
-     * @param array $resource_files
-     */
-    public function __construct($resource_file_paths) {
-        $this->home_dir = __DIR__ . '/../../web';
-        $this->min_target_dir = '/min/';
-        $this->resource_file_paths = $resource_file_paths;
-        $this->resource_type = $this->resourseType();
-        $this->mWebResources = new \app\model\Model_WebResources($this->resource_type);
-    }
-
-
-    /**
-     * return string <b>css</b> or <b>js</b>
-     */
-    abstract protected function resourseType();
-
     /**
      * return string html-code for page <b>head</b> tag
      */

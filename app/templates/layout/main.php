@@ -1,6 +1,9 @@
 <?php
 /** @var string $content rendered template */
 /** @var \Lynxx\View $this */
+
+$this->registerJs('/js/temp333.js', ['async']);
+
 ?>
 
 <!DOCTYPE html>

@@ -15,5 +15,5 @@ interface ViewInterface
 
     public function render(string $view): ResponseInterface;
 
-    public function  registerHeadsTag(string $tag): void;
+    public function registerHeadsTag(string $tag): void;
 }

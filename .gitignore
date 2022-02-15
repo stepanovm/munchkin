@@ -3,3 +3,5 @@
 /log/
 /web/favicon.ico
 /web/.htaccess
+/composer.phar
+/.idea/
