@@ -1,12 +1,10 @@
 <?php
 
-
 namespace app\Controller;
-
 
 use Lynxx\AbstractController;
 use Lynxx\View;
-use PhpCompressor\PhpCompressor;
+
 
 class HomeController extends AbstractController
 {

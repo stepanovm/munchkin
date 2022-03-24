@@ -4,8 +4,10 @@
 namespace Lynxx;
 
 
+use bin\Command\AppBuild\AssetsListManager;
 use Laminas\Diactoros\Response\HtmlResponse;
 use Lynxx\Exception\NotFoundException;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class View
@@ -26,6 +28,18 @@ class View
     protected $data = array();
     /** @var array $components contains array of rendered components (html code) */
     protected $components = array();
+
+    protected ?string $templatePath = null;
+
+    protected ContainerInterface $container;
+
+    /**
+     * @param ContainerInterface $container
+     */
+    public function __construct(ContainerInterface $container)
+    {
+        $this->container = $container;
+    }
 
 
     /**
@@ -75,52 +89,44 @@ class View
     public function registerCss(string $css_file_path): void
     {
         /** if file not exist, write log and return */
-        if (!file_exists(__DIR__ . '/../../web' . $css_file_path)) {
+        if (!file_exists(__DIR__ . '/../web' . $css_file_path)) {
             //Utils::writeLog('app_errors', 'не удалось подключить css: '.$css_file_path.'. Файл не найден');
             return;
         }
 
-        if (in_array($css_file_path, $this->css_paths)) {
-            return;
+        if ($this->container->get('config')['application_mode'] === 'DEV') {
+            $this->registerHeadsTag('<link href="' . $css_file_path . '" rel="stylesheet" type="text/css" />');
         }
-        $this->css_paths[] = $css_file_path;
     }
 
     /**
      * register js tag.
      * @param string $js path to js file
      */
-    public function registerJs($js)
+    public function registerJs(string $js, array $params)
     {
         /** if file not exist, write log and return */
-        if (!file_exists(__DIR__ . '/../../web' . $js)) {
-            //Utils::writeLog('app_errors', 'не удалось подключить js: '.$js.'. Файл не найден');
+        if (!file_exists(__DIR__ . '/../web' . $js)) {
+            /** writeLog('app_errors', 'не удалось подключить js: '.$js.'. Файл не найден'); */
             return;
         }
 
-        // if by some miracle the script is NOT asynchronous, just put tag to heads
-        if (!in_array('async', $params)) {
-            $jsTag = '<script type="text/javascript" src="' . $js . '"></script>';
+        $async = in_array('async', $params) ? 'async' : '';
+        $jsTag = '<script ' . $async . ' type="text/javascript" src="' . $js . '"></script>';
+
+        if (!in_array('async', $params)
+            || in_array('nocompress', $params)
+            || $this->container->get('config')['application_mode'] === 'DEV') {
             $this->registerHeadsTag($jsTag);
-            return;
         }
-
-        if (in_array('no_compress', $params)) {
-            $jsTag = '<script async type="text/javascript" src="' . $js . '"></script>';
-            $this->registerHeadsTag($jsTag);
-            return;
-        }
-
-        if (in_array($js, $this->js_paths)) {
-            return;
-        }
-        $this->js_paths[] = $js;
     }
 
 
     public function render($view_file, $data = []): ResponseInterface
     {
         extract($data);
+
+        $this->templatePath = $view_file;
 
         ob_start();
         $view_file = __DIR__ . '/../app/templates/' . $view_file;
@@ -180,12 +186,37 @@ class View
     public function getHeads()
     {
         $heads = $this->heads;
-        $headshtml = '';
+        $headsHtml = '';
         for ($i = 0; $i < count($heads); $i++) {
-            $headshtml .= $heads[$i];
+            $headsHtml .= $heads[$i];
         }
 
-        return $headshtml;
+        if ($this->container->get('config')['application_mode'] === 'PROD') {
+            $headsHtml .= $this->appendProdAssets();
+        }
+
+        return $headsHtml;
+    }
+
+
+    private function appendProdAssets(): string
+    {
+        $assetsHeadHtml = '';
+
+        /** @var AssetsListManager $assetsManager */
+        $assetsManager = $this->container->get(AssetsListManager::class);
+
+        $jsFileInfo = $assetsManager->getCompressedAssetInfo($this->templatePath, AssetsListManager::RES_TYPE_JS);
+        if (file_exists(__DIR__ . '/../web' . $jsFileInfo['filename'])) {
+            $assetsHeadHtml .= '<script async type="text/javascript" src="' . $jsFileInfo['filename'] . '?'.$jsFileInfo['version'].'"></script>';
+        }
+
+        $cssFileInfo = $assetsManager->getCompressedAssetInfo($this->templatePath, AssetsListManager::RES_TYPE_CSS);
+        if (file_exists(__DIR__ . '/../web' . $cssFileInfo['filename'])) {
+            $assetsHeadHtml .= '<link href="' . $cssFileInfo['filename']  . '?'.$cssFileInfo['version'] . '" rel="stylesheet" type="text/css" />';
+        }
+
+        return $assetsHeadHtml;
     }
 
     /**

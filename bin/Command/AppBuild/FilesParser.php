@@ -18,10 +18,10 @@ class FilesParser
 
     /**
      * @param string $viewFileName
-     * @param string $resType Css|Js
+     * @param string $assetType Css|Js
      * @return array
      */
-    public function getTemplateResources(string $viewFile, string $resType): array
+    public function getTemplateAssets(string $viewFile, string $assetType): array
     {
         $resArray = [];
 
@@ -31,10 +31,12 @@ class FilesParser
             throw new \Exception('template '.$viewFile.' not found');
         }
         foreach ($resText as $row) {
-            if(strpos($row, 'register'.$resType) !== false && strpos($row, 'nocompress') === false) {
+            if(strpos($row, 'register'.$assetType) !== false
+                    && strpos($row, 'nocompress') === false
+                    && !($assetType === AssetsListManager::RES_TYPE_JS && strpos($row, 'async') === false)) {
                 preg_match("~^.*?['\"](.*?)['\"].*?$~", $row, $m);
                 if(!file_exists(__DIR__ . '/../../../web' . $m[1])) {
-                    throw new \Exception($m[1] . ' resource file not found');
+                    throw new \Exception($m[1] . ' asset file not found');
                 }
                 $resArray[] = $m[1];
                 continue;
@@ -42,14 +44,13 @@ class FilesParser
 
             if(strpos($row, 'setLayout') !== false) {
                 preg_match("~^.*?['\"](.*?)['\"].*?$~", $row, $m);
-                $resArray = array_merge($resArray, $this->getTemplateResources('layout/' . $m[1], $resType));
+                $resArray = array_merge($resArray, $this->getTemplateAssets('layout/' . $m[1], $assetType));
                 continue;
             }
 
             if(strpos($row, 'registerComponent') !== false) {
                 preg_match("~^.*?['\"].*?['\"].*?['\"](.*?)['\"].*?$~", $row, $m);
-                $resArray = array_merge($resArray, $this->getTemplateResources($m[1], $resType));
-                continue;
+                $resArray = array_merge($resArray, $this->getTemplateAssets($m[1], $assetType));
             }
         }
 

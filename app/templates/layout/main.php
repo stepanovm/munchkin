@@ -1,9 +1,6 @@
 <?php
 /** @var string $content rendered template */
 /** @var \Lynxx\View $this */
-
-$this->registerJs('/js/temp333.js', ['async']);
-
 ?>
 
 <!DOCTYPE html>
@@ -18,8 +15,12 @@ $this->registerJs('/js/temp333.js', ['async']);
 </head>
 <body>
 
-<h1>Munchkin Game</h1>
+<div class="header">HEADER</div>
+
+<div>SOURCE: <?= $this->templatePath ?></div>
 <?= $content ?>
+
+<div class="footer">FOOTER</div>
 
 </body>
 </html>

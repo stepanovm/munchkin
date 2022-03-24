@@ -13,7 +13,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class BuildCommand extends Command
 {
     private FilesParser $filesParser;
-    private ResourcesListManager $resourcesManager;
+    private AssetsListManager $assetsManager;
     private ContainerInterface $container;
 
     /**
@@ -21,10 +21,10 @@ class BuildCommand extends Command
      * @param FilesParser $filesParser
      * @param ContainerInterface $container
      */
-    public function __construct(FilesParser $filesParser, ContainerInterface $container, ResourcesListManager $resourcesManager)
+    public function __construct(FilesParser $filesParser, ContainerInterface $container, AssetsListManager $assetsManager)
     {
         $this->filesParser = $filesParser;
-        $this->resourcesManager = $resourcesManager;
+        $this->assetsManager = $assetsManager;
         $this->container = $container;
         parent::__construct();
     }
@@ -35,18 +35,32 @@ class BuildCommand extends Command
         $this->setDescription('build application for production deployment');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    // TODO написать функцию, которая будет всю папку контроллеров пробивать любой вложенности.
+
+
+    private function getTemplatesFromControllers(string $folder): array
     {
         $templates = [];
-        if ($handle = opendir(__DIR__ . '/../../../app/Controller/')) {
+        if ($handle = opendir($folder)) {
             while (false !== ($file = readdir($handle))) {
                 if ($file === '.' || $file === '..') {
                     continue;
+                } else if (strpos($file, ".php") === false) {
+                    // if current folder's object belong folder-type (not controller's class file)
+                    $templates = array_merge($templates, $this->getTemplatesFromControllers($folder . $file . '/'));
+                } else {
+                    // if controller's class file
+                    $templates = array_merge($templates, $this->filesParser->getControllerViews($folder . $file));
                 }
-                $templates = array_merge($templates, $this->filesParser->getControllerViews(__DIR__ . '/../../../app/Controller/' . $file));
             }
             closedir($handle);
         }
+        return $templates;
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $templates = $this->getTemplatesFromControllers(__DIR__ . '/../../../app/Controller/');
 
         $savedList = [];
 
@@ -54,19 +68,23 @@ class BuildCommand extends Command
             foreach (array_unique($templates) as $template) {
                 $output->writeln('view ::: ' . $template);
 
-                $this->resourcesManager->processResources(
+                $this->assetsManager->resolveTemplateAssets(
                     $template,
-                    $this->filesParser->getTemplateResources($template, ResourcesListManager::RES_TYPE_JS),
-                    ResourcesListManager::RES_TYPE_JS
+                    $this->filesParser->getTemplateAssets($template, AssetsListManager::RES_TYPE_JS),
+                    AssetsListManager::RES_TYPE_JS
                 );
-                $this->resourcesManager->processResources(
+                $this->assetsManager->resolveTemplateAssets(
                     $template,
-                    $this->filesParser->getTemplateResources($template, ResourcesListManager::RES_TYPE_CSS),
-                    ResourcesListManager::RES_TYPE_CSS
+                    $this->filesParser->getTemplateAssets($template, AssetsListManager::RES_TYPE_CSS),
+                    AssetsListManager::RES_TYPE_CSS
                 );
 
-                echo print_r($this->resourcesManager->getResourcesList(), true);
+                // Lynxx::debugPrint($this->assetsManager->getAssetsList());
             }
+
+            /** remove temporary keys (modifiedTime) from assets list */
+            $this->assetsManager->resolveAssetsList();
+
         } catch (\Throwable $ex) {
             $output->writeln('ERROR ::: ' . $ex->getMessage());
         }

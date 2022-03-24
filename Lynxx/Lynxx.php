@@ -3,23 +3,23 @@
 
 namespace Lynxx;
 
-use Lynxx\Container\Container;
 use Lynxx\Router\RouteNotFoundException;
 use Lynxx\Router\Router;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Dotenv\Dotenv;
 
 class Lynxx
 {
-    private static $container;
+    private static ContainerInterface $container;
 
-    public function __construct(Container $container)
+    public function __construct(ContainerInterface $container)
     {
         self::$container = $container;
     }
 
-    public static function getContainer()
+    public static function getContainer(): ContainerInterface
     {
         return self::$container;
     }
@@ -68,5 +68,15 @@ class Lynxx
 
         $dotenv = new Dotenv(true);
         $dotenv->load(__DIR__ . '/../.env');
+    }
+
+    public static function utils()
+    {
+
+    }
+
+    public static function debugPrint($data): ?string
+    {
+        return '<pre>'.print_r($data, true).'</pre>';
     }
 }
